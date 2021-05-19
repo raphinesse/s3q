@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Runs all given binaries sequentially and saves their output.
+# Each binary is launched $JOBS times in parallel.
+
+JOBS=$(( $(nproc) / 2 ))
+
+for bin in "$@"; do
+    [[ -x $bin ]] || continue
+    seq 1 $JOBS | parallel --lb -N0 "./$bin" | tee "$bin.txt"
+done

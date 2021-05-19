@@ -1,0 +1,15 @@
+#include "benchmark_runner.hpp"
+#include "workloads.hpp"
+
+#include "subjects/${BM_SUBJECT_BASE_NAME}.hpp"
+
+template <typename T> struct Subject : ${BM_SUBJECT}<T> {
+    static auto name() { return "${BM_SUBJECT_NAME}"; }
+};
+
+using Benchmark = ${BM_WORKLOAD}<Subject>;
+
+int main() {
+    BenchmarkRunner<Benchmark> runner;
+    runner.run_benchmark();
+}

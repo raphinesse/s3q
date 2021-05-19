@@ -1,0 +1,8 @@
+#include "workloads.hpp"
+#include "subjects/${BM_SUBJECT_BASE_NAME}.hpp"
+
+using Test = ${BM_WORKLOAD}<${BM_SUBJECT}>;
+
+int main() {
+    Test().run(1024000);
+}
