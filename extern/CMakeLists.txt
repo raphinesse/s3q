@@ -48,7 +48,7 @@ target_include_directories(xoshiro
 # Add Sequence Heap library
 fetch(spq
     GIT_REPOSITORY  https://github.com/raphinesse/SequenceHeap.git
-    GIT_TAG         s3q/basic
+    GIT_TAG         s3q/tuned
     GIT_SHALLOW     True)
 add_library(spq INTERFACE)
 target_include_directories(spq
