@@ -6,7 +6,8 @@
 #include <range/v3/view/indices.hpp>
 #include <range/v3/view/transform.hpp>
 
-#include <cassert>
+#include <tlx/die.hpp>
+
 #include <cstddef>
 #include <vector>
 
@@ -28,20 +29,20 @@ int main() {
     auto batches = items | views::chunk(TestCfg::kBufBaseSize);
 
     for (auto b : batches) {
-        assert(ranges::size(b) == TestCfg::kBufBaseSize);
+        die_unless(ranges::size(b) == TestCfg::kBufBaseSize);
         bpq.insert(b);
     }
 
     int max_popped_key = 0;
     while (bpq.size() > 0) {
         auto bucket = bpq.delMin();
-        assert(bucket.buf.size() > 0);
+        die_unless(bucket.buf.size() > 0);
 
         auto keys = bucket.buf | views::transform(getKey);
         auto [kmin, kmax] = ranges::minmax(keys);
 
-        assert(max_popped_key < kmin);
-        assert(kmax <= bucket.sup);
+        die_unless(max_popped_key < kmin);
+        die_unless(kmax <= bucket.sup);
         max_popped_key = kmax;
     }
 }

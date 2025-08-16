@@ -6,7 +6,8 @@
 #include <range/v3/view/indices.hpp>
 #include <range/v3/view/transform.hpp>
 
-#include <cassert>
+#include <tlx/die.hpp>
+
 #include <cstddef>
 #include <vector>
 
@@ -34,6 +35,6 @@ int main() {
     auto popped_keys =
         popped_items | views::transform(getKey) | ranges::to<std::vector>;
 
-    assert(pq.empty());
-    assert(ranges::equal(keys, popped_keys));
+    die_unless(pq.empty());
+    die_unless(ranges::equal(keys, popped_keys));
 }
