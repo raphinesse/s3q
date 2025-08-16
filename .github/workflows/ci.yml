@@ -14,9 +14,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        compiler: [
+          gcc-10, gcc-11, gcc-12, gcc-13, gcc-14,
+          clang-13, clang-14, clang-15, clang-16, clang-17, clang-18,
+        ]
         build_type: [Debug, Release]
         include:
-          # Use all available compiler according to
+          # Use OS image that has the requested compiler pre-installed:
           # https://github.com/actions/runner-images
           - {os: 'ubuntu-22.04', compiler: 'gcc-10'}
           - {os: 'ubuntu-22.04', compiler: 'gcc-11'}
