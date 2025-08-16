@@ -1,5 +1,7 @@
 # Superscalar Sample Queue (S³Q)
 
+![CI](https://github.com/raphinesse/s3q/workflows/CI/badge.svg)
+
 Superscalar Sample Queue is a comparison-based, cache-efficient priority queue that avoids branch mispredictions. It supports operations _push_ and _pop_ in amortized expected time O(log _N_) and an amortized expected number of O(1/_B_ log _M/B_ _N/M_) memory accesses on queues of size _N_, where _M_ is the cache size and _B_ the cache line size.
 
 This repository contains a header-only template implementation of S³Q in portable C++17 as well as benchmarks comparing S³Q to other priority queues.
