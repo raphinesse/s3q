@@ -14,8 +14,8 @@ struct Item {
     K key;
     V value;
 
-    Item<K, V>() : Item<K, V>(0, 0){};
-    Item<K, V>(K key, V value) : key(key), value(value){};
+    Item() : Item<K, V>(0, 0){};
+    Item(K key, V value) : key(key), value(value){};
 
     constexpr bool operator<(const Item<K, V> &b) const noexcept {
         return key < b.key;
