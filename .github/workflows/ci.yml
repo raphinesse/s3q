@@ -51,20 +51,11 @@ jobs:
           exit 1
         fi
 
-    - name: Verify build tool versions
-      run: |
-        $CC --version
-        $CXX --version
-        cmake --version
-
-    - name: Configure CMake
+    - name: Configure
       run: |
         mkdir build
         cd build
-        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-              -DCMAKE_C_COMPILER=$CC \
-              -DCMAKE_CXX_COMPILER=$CXX \
-              ..
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ..
 
     - name: Build
       run: |
@@ -75,12 +66,3 @@ jobs:
       run: |
         cd build
         ctest --output-on-failure -j $(nproc)
-
-    - name: Upload build artifacts on failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-logs-${{ matrix.build_env.os }}-${{ matrix.build_env.compiler }}-${{ matrix.build_type }}
-        path: |
-          build/CMakeFiles/*.log
-          build/CMakeCache.txt
