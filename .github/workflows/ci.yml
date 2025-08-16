@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: ${{ matrix.build_env.os }} - ${{ matrix.build_env.compiler }} - ${{ matrix.build_type }}
+    runs-on: ${{ matrix.build_env.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+        build_env:
+          # Use an OS image that has the respective compiler pre-installed:
+          # https://github.com/actions/runner-images
+          - {os: 'ubuntu-22.04', compiler: 'gcc-10'}
+          - {os: 'ubuntu-22.04', compiler: 'gcc-11'}
+          - {os: 'ubuntu-24.04', compiler: 'gcc-12'}
+          - {os: 'ubuntu-24.04', compiler: 'gcc-13'}
+          - {os: 'ubuntu-24.04', compiler: 'gcc-14'}
+          - {os: 'ubuntu-22.04', compiler: 'clang-13'}
+          - {os: 'ubuntu-22.04', compiler: 'clang-14'}
+          - {os: 'ubuntu-22.04', compiler: 'clang-15'}
+          - {os: 'ubuntu-24.04', compiler: 'clang-16'}
+          - {os: 'ubuntu-24.04', compiler: 'clang-17'}
+          - {os: 'ubuntu-24.04', compiler: 'clang-18'}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set compiler variables
+      id: set_compiler
+      run: |
+        COMPILER="${{ matrix.build_env.compiler }}"
+        if [[ "$COMPILER" == gcc-* ]]; then
+          VERSION="${COMPILER#gcc-}"
+          echo "CC=gcc-$VERSION" >> $GITHUB_ENV
+          echo "CXX=g++-$VERSION" >> $GITHUB_ENV
+        elif [[ "$COMPILER" == clang-* ]]; then
+          VERSION="${COMPILER#clang-}"
+          echo "CC=clang-$VERSION" >> $GITHUB_ENV
+          echo "CXX=clang++-$VERSION" >> $GITHUB_ENV
+        else
+          echo "Unknown compiler: $COMPILER"
+          exit 1
+        fi
+
+    - name: Configure
+      run: |
+        mkdir build
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ..
+
+    - name: Build
+      run: |
+        cd build
+        cmake --build . -j $(nproc) --target all_tests
+
+    - name: Run tests
+      run: |
+        cd build
+        ctest --output-on-failure -j $(nproc)
