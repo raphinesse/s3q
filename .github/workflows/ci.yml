@@ -8,95 +8,62 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.os }} - ${{ matrix.compiler.name }}-${{ matrix.compiler.version }} - ${{ matrix.build_type }}
+    name: ${{ matrix.os }} - ${{ matrix.compiler }} - ${{ matrix.build_type }}
     runs-on: ${{ matrix.os }}
     
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04]
         build_type: [Debug, Release]
-        compiler:
-          # GCC versions available on GitHub runners
-          - { name: gcc, version: 9, cc: gcc-9, cxx: g++-9, pkg: "gcc-9 g++-9" }
-          - { name: gcc, version: 10, cc: gcc-10, cxx: g++-10, pkg: "gcc-10 g++-10" }
-          - { name: gcc, version: 11, cc: gcc-11, cxx: g++-11, pkg: "gcc-11 g++-11" }
-          - { name: gcc, version: 12, cc: gcc-12, cxx: g++-12, pkg: "gcc-12 g++-12" }
-          - { name: gcc, version: 13, cc: gcc-13, cxx: g++-13, pkg: "gcc-13 g++-13" }
-          - { name: gcc, version: 14, cc: gcc-14, cxx: g++-14, pkg: "gcc-14 g++-14" }
-          # Clang versions available on GitHub runners
-          - { name: clang, version: 10, cc: clang-10, cxx: clang++-10, pkg: "clang-10" }
-          - { name: clang, version: 11, cc: clang-11, cxx: clang++-11, pkg: "clang-11" }
-          - { name: clang, version: 12, cc: clang-12, cxx: clang++-12, pkg: "clang-12" }
-          - { name: clang, version: 13, cc: clang-13, cxx: clang++-13, pkg: "clang-13" }
-          - { name: clang, version: 14, cc: clang-14, cxx: clang++-14, pkg: "clang-14" }
-          - { name: clang, version: 15, cc: clang-15, cxx: clang++-15, pkg: "clang-15" }
-          - { name: clang, version: 16, cc: clang-16, cxx: clang++-16, pkg: "clang-16" }
-          - { name: clang, version: 17, cc: clang-17, cxx: clang++-17, pkg: "clang-17" }
-          - { name: clang, version: 18, cc: clang-18, cxx: clang++-18, pkg: "clang-18" }
-      exclude:
-        # Exclude combinations not available on specific Ubuntu versions
-        # Ubuntu 20.04 doesn't have newer GCC and Clang versions by default
-        - os: ubuntu-20.04
-          compiler: { name: gcc, version: 13, cc: gcc-13, cxx: g++-13, pkg: "gcc-13 g++-13" }
-        - os: ubuntu-20.04
-          compiler: { name: gcc, version: 14, cc: gcc-14, cxx: g++-14, pkg: "gcc-14 g++-14" }
-        - os: ubuntu-20.04 
-          compiler: { name: clang, version: 15, cc: clang-15, cxx: clang++-15, pkg: "clang-15" }
-        - os: ubuntu-20.04 
-          compiler: { name: clang, version: 16, cc: clang-16, cxx: clang++-16, pkg: "clang-16" }
-        - os: ubuntu-20.04 
-          compiler: { name: clang, version: 17, cc: clang-17, cxx: clang++-17, pkg: "clang-17" }
-        - os: ubuntu-20.04 
-          compiler: { name: clang, version: 18, cc: clang-18, cxx: clang++-18, pkg: "clang-18" }
-        # Ubuntu 22.04 doesn't have the newest GCC and Clang versions
-        - os: ubuntu-22.04
-          compiler: { name: gcc, version: 14, cc: gcc-14, cxx: g++-14, pkg: "gcc-14 g++-14" }
-        - os: ubuntu-22.04
-          compiler: { name: clang, version: 17, cc: clang-17, cxx: clang++-17, pkg: "clang-17" }
-        - os: ubuntu-22.04
-          compiler: { name: clang, version: 18, cc: clang-18, cxx: clang++-18, pkg: "clang-18" }
+        include:
+          # Use all available compiler according to
+          # https://github.com/actions/runner-images
+          - {os: 'ubuntu-22.04', compiler: 'gcc-10'}
+          - {os: 'ubuntu-22.04', compiler: 'gcc-11'}
+          - {os: 'ubuntu-24.04', compiler: 'gcc-12'}
+          - {os: 'ubuntu-24.04', compiler: 'gcc-13'}
+          - {os: 'ubuntu-24.04', compiler: 'gcc-14'}
+          - {os: 'ubuntu-22.04', compiler: 'clang-13'}
+          - {os: 'ubuntu-22.04', compiler: 'clang-14'}
+          - {os: 'ubuntu-22.04', compiler: 'clang-15'}
+          - {os: 'ubuntu-24.04', compiler: 'clang-16'}
+          - {os: 'ubuntu-24.04', compiler: 'clang-17'}
+          - {os: 'ubuntu-24.04', compiler: 'clang-18'}
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install compiler and dependencies
+    - name: Set compiler variables
+      id: set_compiler
       run: |
-        sudo apt-get update
-        
-        # Add LLVM repository for newer clang versions if needed
-        if [ "${{ matrix.compiler.name }}" = "clang" ] && [ "${{ matrix.compiler.version }}" -ge "15" ]; then
-          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-          if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then
-            echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-${{ matrix.compiler.version }} main" | sudo tee /etc/apt/sources.list.d/llvm.list
-          elif [ "${{ matrix.os }}" = "ubuntu-24.04" ]; then
-            echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-${{ matrix.compiler.version }} main" | sudo tee /etc/apt/sources.list.d/llvm.list
-          fi
-          sudo apt-get update
+        COMPILER="${{ matrix.compiler }}"
+        if [[ "$COMPILER" == gcc-* ]]; then
+          VERSION="${COMPILER#gcc-}"
+          echo "CC=gcc-$VERSION" >> $GITHUB_ENV
+          echo "CXX=g++-$VERSION" >> $GITHUB_ENV
+        elif [[ "$COMPILER" == clang-* ]]; then
+          VERSION="${COMPILER#clang-}"
+          echo "CC=clang-$VERSION" >> $GITHUB_ENV
+          echo "CXX=clang++-$VERSION" >> $GITHUB_ENV
+        else
+          echo "Unknown compiler: $COMPILER"
+          exit 1
         fi
-        
-        # Install compiler packages
-        sudo apt-get install -y ${{ matrix.compiler.pkg }}
-        
-        # Install cmake and build essentials
-        sudo apt-get install -y cmake build-essential
 
-    - name: Verify compiler installation
+    - name: Verify build tool versions
       run: |
-        ${{ matrix.compiler.cc }} --version
-        ${{ matrix.compiler.cxx }} --version
+        $CC --version
+        $CXX --version
         cmake --version
 
     - name: Configure CMake
       run: |
         mkdir build
         cd build
-        export CC=${{ matrix.compiler.cc }}
-        export CXX=${{ matrix.compiler.cxx }}
         cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-              -DCMAKE_C_COMPILER=${{ matrix.compiler.cc }} \
-              -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cxx }} \
+              -DCMAKE_C_COMPILER=$CC \
+              -DCMAKE_CXX_COMPILER=$CXX \
               ..
 
     - name: Build
@@ -113,7 +80,7 @@ jobs:
       if: failure()
       uses: actions/upload-artifact@v4
       with:
-        name: build-logs-${{ matrix.os }}-${{ matrix.compiler.name }}-${{ matrix.compiler.version }}-${{ matrix.build_type }}
+        name: build-logs-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
         path: |
           build/CMakeFiles/*.log
           build/CMakeCache.txt
