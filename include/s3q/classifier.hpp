@@ -79,6 +79,7 @@ private:
         using less = std::less<value_type>;
 
         // ips4o's Classifier only has space for (kMaxBuckets / 2) splitters
+        static constexpr int kLogBuckets = Cfg::kLogMaxDegree + 1;
         static constexpr int kMaxBuckets = Cfg::kMaxDegree * 2;
         static constexpr int kUnrollClassifier = 7;
 

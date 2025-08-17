@@ -10,7 +10,7 @@ endmacro()
 
 fetch(ips4o
     GIT_REPOSITORY  https://github.com/raphinesse/ips4o.git
-    GIT_TAG         s3q
+    GIT_TAG         s3q.2
     GIT_SHALLOW     True)
 add_library(ips4o INTERFACE)
 target_include_directories(ips4o
