@@ -1,5 +1,13 @@
 include(FetchContent)
 
+# Allow the FetchContent_Populate pattern we are using below.
+# We cannot switch directly to FetchContent_MakeAvailable since that will
+# always interpret the fetched dependencies' CMakeLists.txt files. This is not
+# what we want as we only grab a few headers in most cases.
+if(POLICY CMP0169)
+    cmake_policy(SET CMP0169 OLD)
+endif()
+
 macro(fetch)
     FetchContent_Declare(${ARGV})
     FetchContent_GetProperties(${ARGV0})
