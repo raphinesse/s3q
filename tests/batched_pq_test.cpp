@@ -28,7 +28,7 @@ int main() {
     auto keys = views::closed_indices(1, N);
     auto items = keys | views::transform(makeItem);
     auto batches = items | views::chunk(TestCfg::kBufBaseSize)
-                         | ranges::to<std::vector<std::vector<int>>>;
+                         | ranges::to<std::vector<std::vector<typename TestCfg::Item>>>;
 
     for (auto b : batches) {
         die_unless(ranges::size(b) == TestCfg::kBufBaseSize);
