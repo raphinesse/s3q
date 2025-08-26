@@ -27,12 +27,11 @@ int main() {
     namespace views = ranges::views;
     auto keys = views::closed_indices(1, N);
     auto items = keys | views::transform(makeItem);
-    auto batches = items | views::chunk(TestCfg::kBufBaseSize)
-                         | ranges::to<std::vector<std::vector<typename TestCfg::Item>>>;
+    auto batches = items | views::chunk(TestCfg::kBufBaseSize);
 
     for (auto b : batches) {
         die_unless(ranges::size(b) == TestCfg::kBufBaseSize);
-        bpq.insert(b);
+        bpq.insert(b | ranges::to<std::vector<TestCfg::Item>>);
     }
 
     int max_popped_key = 0;
