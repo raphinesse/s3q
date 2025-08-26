@@ -11,7 +11,7 @@ env:
   BUILD_TYPE: RelWithDebInfo
 
 jobs:
-  build:
+  callgrind:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,18 +27,16 @@ jobs:
     - name: Install Callgrind
       run: sudo apt install -y valgrind
 
-    - name: Find bin
-      run: find . -type f -name 'bm_test_*'
-
     - name: Callgrind
-      run: valgrind --tool=callgrind --cache-sim=yes ./build/bin/bm_test_S3Q_6_15__Wiggle_0_RandomDriver_
+      run: >
+        valgrind
+          --tool=callgrind --cache-sim=yes
+          ./build/bin/bm_test_S3Q_6_15__Wiggle_0_RandomDriver_
 
-    - name: Show Results (exclusive)
-      run: callgrind_annotate callgrind.out.*
-
-    - name: Show Results (exclusive)
-      run: callgrind_annotate --inclusive=yes callgrind.out.*
-
-    - name: Show Results (tree)
-      run: callgrind_annotate --tree=both callgrind.out.*
-
+    - name: Show Results
+      run: >
+        callgrind_annotate
+          --inclusive=yes --tree=both
+          --show=D1mr,D1mw
+          --sort=D1mr,D1mw
+          callgrind.out.*
