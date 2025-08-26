@@ -31,7 +31,7 @@ jobs:
       run: find . -type f -name 'bm_test_*'
 
     - name: Callgrind
-      run: valgrind --tool=callgrind --cache-sim=yes ./bin/bm_test_S3Q_6_15__Wiggle_0_RandomDriver_
+      run: valgrind --tool=callgrind --cache-sim=yes ./build/bin/bm_test_S3Q_6_15__Wiggle_0_RandomDriver_
 
     - name: Show Results (exclusive)
       run: callgrind_annotate callgrind.out.*
