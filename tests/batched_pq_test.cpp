@@ -5,6 +5,7 @@
 #include <range/v3/view/chunk.hpp>
 #include <range/v3/view/indices.hpp>
 #include <range/v3/view/transform.hpp>
+#include <range/v3/range/conversion.hpp>
 
 #include <tlx/die.hpp>
 
@@ -26,7 +27,8 @@ int main() {
     namespace views = ranges::views;
     auto keys = views::closed_indices(1, N);
     auto items = keys | views::transform(makeItem);
-    auto batches = items | views::chunk(TestCfg::kBufBaseSize);
+    auto batches = items | views::chunk(TestCfg::kBufBaseSize)
+                         | ranges::to<std::vector<std::vector<int>>>;
 
     for (auto b : batches) {
         die_unless(ranges::size(b) == TestCfg::kBufBaseSize);
