@@ -29,7 +29,7 @@ jobs:
 
     - name: Callgrind
       working-directory: ${{github.workspace}}/build
-      run: valgrind --tool=callgrind --cache-sim=yes ./bm_test_S3Q_6_15__Wiggle_0_RandomDriver_
+      run: valgrind --tool=callgrind --cache-sim=yes ./benchmarks/bm_test_S3Q_6_15__Wiggle_0_RandomDriver_
 
     - name: Show Results (exclusive)
       working-directory: ${{github.workspace}}/build
