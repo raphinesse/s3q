@@ -22,7 +22,7 @@ jobs:
 
     - name: Build
       working-directory: ${{github.workspace}}/build
-      run: cmake --build . --targets bm_test_S3Q_6_15__Wiggle_0_RandomDriver_
+      run: cmake --build . --target bm_test_S3Q_6_15__Wiggle_0_RandomDriver_
 
     - name: Install Callgrind
       run: apt-get install valgrind
