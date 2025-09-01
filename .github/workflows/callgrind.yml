@@ -1,0 +1,53 @@
+name: Callgrind
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: RelWithDebInfo
+
+jobs:
+  callgrind:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure CMake
+      run: >
+        CXXFLAGS=-fno-inline
+        cmake -B ${{github.workspace}}/build
+        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      run: cmake --build . --target bm_test_S3Q_6_15__Wiggle_0_RandomDriver_
+
+    - name: Install Callgrind
+      run: sudo apt install -y valgrind
+
+    - name: Callgrind
+      run: >
+        valgrind
+        --tool=callgrind --cache-sim=yes
+        ./build/bin/bm_test_S3Q_6_15__Wiggle_0_RandomDriver_
+
+    - name: Show Results
+      run: >
+        callgrind_annotate
+        --inclusive=yes --tree=both
+        --show=D1mr,D1mw --sort=D1mr,D1mw
+        callgrind.out.*
+        | tee cga_report.txt
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: callgrind
+        path: |
+          callgrind.out.*
+          cga_report.txt
+        
