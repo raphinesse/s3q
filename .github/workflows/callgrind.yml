@@ -39,3 +39,12 @@ jobs:
         --inclusive=yes --tree=both
         --show=D1mr,D1mw --sort=D1mr,D1mw
         callgrind.out.*
+        | tee cga_report.txt
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: callgrind
+        path: |
+          callgrind.out.*
+          cga_report.txt
+        
