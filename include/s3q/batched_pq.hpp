@@ -4,6 +4,8 @@
 #include "sampling.hpp"
 #include "util.hpp"
 
+#include <ips4o/memory.hpp>
+
 #include <range/v3/view/transform.hpp>
 
 #include <cassert>
@@ -18,6 +20,8 @@ template <class Cfg>
 class BatchedPriorityQueue {
     using Level = ::s3q::detail::Level<Cfg>;
     using SplitterSampler = ::s3q::detail::SplitterSampler<>;
+    using SplitSorter = typename Level::SplitSorter;
+    using SplitCfg   = typename Level::SplitCfg;
 
 public:
     using Bucket = typename Level::Bucket;
@@ -93,7 +97,7 @@ private:
             assert(lvl->degree() > Cfg::kMaxDegree - Cfg::kSplitFactor);
 
             // Add new level and flush max-buf into it
-            levels_.emplace_back(sampler_, *lvl);
+            levels_.emplace_back(sampler_, splitLocalDataPtr_.get(), *lvl);
             lvl->flushMaxBufInto(levels_.back());
         }
     }
@@ -147,8 +151,16 @@ private:
 
     SplitterSampler sampler_;
 
+    // Buffer storage and local data for IPS4o-based in-place splitting.
+    // splitBufStorage_ must be declared before splitLocalDataPtr_ (init order).
+    typename SplitSorter::BufferStorage splitBufStorage_{1};
+    ips4o::detail::AlignedPtr<typename SplitSorter::LocalData> splitLocalDataPtr_{
+        SplitCfg::kDataAlignment,
+        typename Level::ItemKeyLess{},
+        splitBufStorage_.get()};
+
     // sorted from finest to coarsest (ascending order of elements)
-    Levels levels_{Level(sampler_)};
+    Levels levels_{Level(sampler_, splitLocalDataPtr_.get())};
 };
 
 } // namespace s3q::detail

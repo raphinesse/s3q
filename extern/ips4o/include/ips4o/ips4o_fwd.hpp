@@ -85,6 +85,21 @@ class Sorter {
 
     void sequential_rec(iterator begin, iterator end);
 
+    // Partitions [begin, end) into buckets in-place without recursion.
+    // Fills bucket_start[0..num_buckets] with element boundaries.
+    // Does NOT call local_.reset(); caller must call resetLocalData() after
+    // reading getSortedSplitters().
+    std::pair<int, bool> partitionOnce(iterator begin, iterator end,
+                                       diff_t* bucket_start);
+
+    // Returns the sorted splitter objects built during the last partitionOnce().
+    // Valid only until resetLocalData() is called.
+    value_type* getSortedSplitters();
+
+    // Releases resources held by partitionOnce(). Must be called after
+    // reading getSortedSplitters().
+    void resetLocalData();
+
 #if defined(_REENTRANT)
     void parallelSortPrimary(iterator begin, iterator end, int num_threads,
                              BufferStorage& buffer_storage,

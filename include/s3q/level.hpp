@@ -5,6 +5,8 @@
 #include "sampling.hpp"
 #include "util.hpp"
 
+#include <ips4o/sequential.hpp>
+
 #include <range/v3/action/insert.hpp>
 #include <range/v3/core.hpp>
 #include <range/v3/numeric/accumulate.hpp>
@@ -29,13 +31,47 @@ public:
     using BucketIdx = typename Cfg::BucketIdx;
     using SplitterSampler = ::s3q::detail::SplitterSampler<>;
 
+    // Comparator for IPS4o that orders Item objects by key.
+    struct ItemKeyLess {
+        bool operator()(const typename Cfg::Item& a,
+                        const typename Cfg::Item& b) const noexcept {
+            return Cfg::getKey(a) < Cfg::getKey(b);
+        }
+    };
+
+    // IPS4o configuration for single-pass in-place bucket partitioning.
+    // kAllowEqualBuckets=false keeps bucket_start interpretation simple.
+    // kLogBuckets matches S3Q's existing classifier depth.
+    using SplitCfg = ips4o::ExtendedConfig<
+        typename Cfg::Item*,
+        ItemKeyLess,
+        ips4o::Config<
+            false,                              // AllowEqualBuckets
+            IPS4OML_BASE_CASE_SIZE,
+            IPS4OML_BASE_CASE_MULTIPLIER,
+            IPS4OML_BLOCK_SIZE,
+            std::ptrdiff_t,                     // BucketT
+            IPS4OML_DATA_ALIGNMENT,
+            IPS4OML_EQUAL_BUCKETS_THRESHOLD,
+            Cfg::kLogMaxDegree + 1,             // LogBuckets — matches S3Q classifier
+            IPS4OML_MIN_PARALLEL_BLOCKS_PER_THREAD,
+            IPS4OML_OVERSAMPLING_FACTOR_PERCENT,
+            IPS4OML_UNROLL_CLASSIFIER>>;
+    using SplitSorter = ips4o::detail::Sorter<SplitCfg>;
+
     // Ctor for first level
-    explicit Level(SplitterSampler &sampler)
-        : getSplitters(sampler), kMaxBucketSize_(Cfg::kBufBaseSize) {}
+    explicit Level(SplitterSampler& sampler,
+                   typename SplitSorter::LocalData& split_local_data)
+        : getSplitters(sampler),
+          splitLocalData_(split_local_data),
+          kMaxBucketSize_(Cfg::kBufBaseSize) {}
 
     // Ctor for any other level
-    explicit Level(SplitterSampler &sampler, const Level &pred)
+    explicit Level(SplitterSampler& sampler,
+                   typename SplitSorter::LocalData& split_local_data,
+                   const Level& pred)
         : getSplitters(sampler),
+          splitLocalData_(split_local_data),
           kMaxBucketSize_(pred.kMaxBucketSize_ * Cfg::kGrowthRate) {}
 
     bool overflow() const { return maxBufSize() > kMaxBucketSize_; }
@@ -295,55 +331,83 @@ private:
         traceState("split:after_shrink");
 
         auto buf = std::move(bucket(idx).buf);
-        auto keys_view = ranges::transform_view(buf, Cfg::getKey);
         bucket(idx).buf.clear();
-        assert(minBucketSize() <= ssize(buf) / split_degree);
+        const auto n = ssize(buf);
+        assert(minBucketSize() <= n / split_degree);
 
-        // determine splitters and insert them together with empty buffers
-        // the old splitter becomes the supremum of the last new bucket
-        auto splitters = getSplitters(keys_view, split_degree);
-        auto num_new_buckets = ssize(splitters);
-        assert(num_new_buckets < split_degree);
-        ranges::insert(buckets_, buckets_.begin() + idx, splitters);
+        // Partition buf in-place using IPS4o's classifier + block permutation.
+        // This replaces the scatter loop and eliminates the L1-miss storm.
+        typename SplitSorter::diff_t bucket_start[SplitCfg::kMaxBuckets + 1];
+        SplitSorter sorter(splitLocalData_);
+        const auto [num_ips4o_buckets, /*use_equal_buckets*/] =
+            sorter.partitionOnce(buf.data(), buf.data() + n, bucket_start);
+
+        // Read suprema from the IPS4o classifier BEFORE resetLocalData() destroys them.
+        // sorted_splitters[i] is the supremum Item for IPS4o bucket i (0-indexed),
+        // valid for i in [0, num_ips4o_buckets-2]; last bucket inherits old_sup.
+        const auto* sp = sorter.getSortedSplitters();
+        const auto old_sup = bucket(idx).sup;
+
+        // Build a compact list of surviving bucket ranges.
+        // Using a fixed-size array avoids heap allocation on the hot path.
+        struct Range {
+            typename SplitSorter::diff_t start, end;
+            typename Cfg::Key sup;
+        };
+        Range ranges[SplitCfg::kMaxBuckets];
+        for (int i = 0; i < num_ips4o_buckets; ++i) {
+            ranges[i] = {
+                bucket_start[i],
+                bucket_start[i + 1],
+                i < num_ips4o_buckets - 1 ? Cfg::getKey(sp[i]) : old_sup};
+        }
+
+        // Done reading classifier data; release IPS4o's internal state.
+        sorter.resetLocalData();
+
+        // Repair pass: right-to-left, merge underflowing buckets into predecessor.
+        // Elements are still contiguous in buf; merging is just range extension.
+        int surviving = num_ips4o_buckets;
+        for (int i = surviving - 1; i >= 1; --i) {
+            if (2 * (ranges[i].end - ranges[i].start) >= minBucketSize()) continue;
+            S3Q_TRACE << "event=split:repair lvl=" << this->idx()
+                      << " idx=" << i << "\n";
+            ranges[i - 1].end = ranges[i].end;
+            ranges[i - 1].sup = ranges[i].sup;
+            // Shift the tail of the array left by one.
+            for (int j = i; j < surviving - 1; ++j) ranges[j] = ranges[j + 1];
+            --surviving;
+        }
+
+        // If the first bucket underflows, merge it into its successor.
+        if (surviving >= 2 &&
+            2 * (ranges[0].end - ranges[0].start) < minBucketSize()) {
+            S3Q_TRACE << "event=split:repair lvl=" << this->idx() << " idx=0\n";
+            ranges[1].start = ranges[0].start;
+            for (int j = 0; j < surviving - 1; ++j) ranges[j] = ranges[j + 1];
+            --surviving;
+        }
+        assert(surviving >= 1);
+
+        // Insert (surviving - 1) placeholder Bucket objects at idx.
+        // bucket(idx) is the pre-existing placeholder; it becomes the last survivor.
+        if (surviving > 1) {
+            buckets_.insert(buckets_.begin() + idx, surviving - 1, Bucket{});
+        }
         classifier_.invalidate();
 
+        // Populate each surviving bucket from the contiguous partition in buf.
+        for (int i = 0; i < surviving; ++i) {
+            auto& bkt = bucket(idx + i);
+            bkt.sup = ranges[i].sup;
+            bkt.buf.assign(buf.data() + ranges[i].start,
+                           buf.data() + ranges[i].end);
+        }
+
         S3Q_TRACE << "event=split:splitters lvl=" << this->idx()
-                  << " idx=" << idx << " degree=" << ssize(splitters) + 1
-                  << "\n";
+                  << " idx=" << idx << " degree=" << surviving << "\n";
 
-        // PERF: only use local classifier if split_degree ≪ degree()
-        Classifier classifier{splitters};
-        const auto split_begin = buckets_.begin() + idx;
-        classifier.classify(keys_view, [split_begin](auto c, auto it) {
-            split_begin[c].buf.push_back(*it.base());
-        });
-
-        // From right to left, join underflowing buckets onto their predecessors
-        for (auto it = split_begin + num_new_buckets; it > split_begin; --it) {
-            if (2 * ssize(it->buf) >= minBucketSize()) continue;
-            S3Q_TRACE << "event=split:repair lvl=" << this->idx()
-                      << " idx=" << std::distance(split_begin, it) << "\n";
-            auto prev = std::prev(it);
-            append(prev->buf, rv::move(it->buf));
-            prev->sup = it->sup;
-            buckets_.erase(it);
-            --num_new_buckets;
-        }
-
-        // If first bucket underflows, join it onto its successor
-        if (2 * ssize(split_begin->buf) < minBucketSize()) {
-            S3Q_TRACE << "event=split:repair lvl=" << this->idx() << " idx=0"
-                      << "\n";
-            assert(std::next(split_begin) < buckets_.end());
-            auto &next = std::next(split_begin)->buf;
-            append(next, rv::move(split_begin->buf));
-            buckets_.erase(split_begin);
-            --num_new_buckets;
-        }
-
-        assert(num_new_buckets >= 0);
-
-        return fixOverflowingBuckets(idx, idx + num_new_buckets + 1);
+        return fixOverflowingBuckets(idx, idx + surviving);
     }
 
     void traceState(const char *event_name) {
@@ -358,6 +422,8 @@ private:
     bool is_last_ = true;
 
     SplitterSampler &getSplitters;
+
+    typename SplitSorter::LocalData& splitLocalData_;
 
     const std::ptrdiff_t kMaxBucketSize_;
 
