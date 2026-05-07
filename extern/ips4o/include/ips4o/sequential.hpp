@@ -161,6 +161,65 @@ void Sorter<Cfg>::sequential_rec(const iterator begin, const iterator end) {
 
 }
 
+/**
+ * Single-pass in-place partition without recursion.
+ * Like partition<false> but does NOT call local_.reset(), so the caller can
+ * read getSortedSplitters() before calling resetLocalData().
+ */
+template <class Cfg>
+std::pair<int, bool> Sorter<Cfg>::partitionOnce(const iterator begin,
+                                                const iterator end,
+                                                diff_t* const bucket_start) {
+    bool use_equal_buckets = false;
+    std::tie(this->num_buckets_, use_equal_buckets) =
+            buildClassifier(begin, end, local_.classifier);
+
+    this->classifier_      = &local_.classifier;
+    this->bucket_start_    = bucket_start;
+    this->bucket_pointers_ = local_.bucket_pointers;
+    this->overflow_        = nullptr;
+    this->begin_           = begin;
+    this->end_             = end;
+    this->my_id_           = 0;
+    this->num_threads_     = 1;
+
+    sequentialClassification(use_equal_buckets);
+
+    const int overflow_bucket = computeOverflowBucket();
+
+    if (use_equal_buckets)
+        permuteBlocks<true, false>();
+    else
+        permuteBlocks<false, false>();
+
+    {
+        const auto in_swap_buffer = std::pair<int, diff_t>(-1, 0);
+        writeMargins<false>(0, num_buckets_, overflow_bucket,
+                            in_swap_buffer.first, in_swap_buffer.second);
+    }
+
+    // Intentionally NOT calling local_.reset() here.
+    // Caller must call resetLocalData() after reading getSortedSplitters().
+    return {this->num_buckets_, use_equal_buckets};
+}
+
+/**
+ * Returns the sorted splitter objects from the last partitionOnce() call.
+ * Valid only until resetLocalData() is called.
+ */
+template <class Cfg>
+typename Sorter<Cfg>::value_type* Sorter<Cfg>::getSortedSplitters() {
+    return local_.classifier.getSortedSplitters();
+}
+
+/**
+ * Resets local data. Must be called after partitionOnce() + getSortedSplitters().
+ */
+template <class Cfg>
+void Sorter<Cfg>::resetLocalData() {
+    local_.reset();
+}
+
 }  // namespace detail
 
 /**
