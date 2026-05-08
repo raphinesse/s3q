@@ -16,10 +16,7 @@ macro(fetch)
     endif()
 endmacro()
 
-fetch(ips4o
-    GIT_REPOSITORY  https://github.com/raphinesse/ips4o.git
-    GIT_TAG         s3q.2
-    GIT_SHALLOW     True)
+set(ips4o_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ips4o)
 add_library(ips4o INTERFACE)
 target_include_directories(ips4o
     SYSTEM INTERFACE ${ips4o_SOURCE_DIR}/include)
