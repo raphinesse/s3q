@@ -18,7 +18,7 @@
 #include <cstddef>
 #include <iostream>
 #include <iterator>
-#include <map>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -285,7 +285,7 @@ private:
     static void printKeyDist(std::ostream &os, const KeyRange &keys,
                              const char *label) {
         // Collect key frequencies
-        std::map<typename std::decay<decltype(*keys.begin())>::type, int> freq;
+        std::unordered_map<typename std::decay<decltype(*keys.begin())>::type, int> freq;
         for (auto k : keys) freq[k]++;
         if (freq.empty()) {
             os << label << " count=0 [empty]\n";
@@ -294,8 +294,15 @@ private:
         auto [mode_key, mode_cnt] =
             *std::max_element(freq.begin(), freq.end(),
                               [](auto &a, auto &b) { return a.second < b.second; });
-        auto min_k = freq.begin()->first;
-        auto max_k = freq.rbegin()->first;
+        auto [min_k, max_k] = [&] {
+            auto it = freq.begin();
+            auto lo = it->first, hi = it->first;
+            for (++it; it != freq.end(); ++it) {
+                lo = std::min(lo, it->first);
+                hi = std::max(hi, it->first);
+            }
+            return std::pair{lo, hi};
+        }();
         int total = 0;
         for (auto &[k, c] : freq) total += c;
         os << label << " count=" << total
