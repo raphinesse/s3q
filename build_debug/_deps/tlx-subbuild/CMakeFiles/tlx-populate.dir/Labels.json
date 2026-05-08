@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/tlx-subbuild/CMakeFiles/tlx-populate"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/tlx-subbuild/CMakeFiles/tlx-populate.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/tlx-subbuild/CMakeFiles/tlx-populate-complete.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/tlx-subbuild/tlx-populate-prefix/src/tlx-populate-stamp/tlx-populate-build.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/tlx-subbuild/tlx-populate-prefix/src/tlx-populate-stamp/tlx-populate-configure.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/tlx-subbuild/tlx-populate-prefix/src/tlx-populate-stamp/tlx-populate-download.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/tlx-subbuild/tlx-populate-prefix/src/tlx-populate-stamp/tlx-populate-install.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/tlx-subbuild/tlx-populate-prefix/src/tlx-populate-stamp/tlx-populate-mkdir.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/tlx-subbuild/tlx-populate-prefix/src/tlx-populate-stamp/tlx-populate-patch.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/tlx-subbuild/tlx-populate-prefix/src/tlx-populate-stamp/tlx-populate-test.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/tlx-subbuild/tlx-populate-prefix/src/tlx-populate-stamp/tlx-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"tlx-populate"
+		],
+		"name" : "tlx-populate"
+	}
+}

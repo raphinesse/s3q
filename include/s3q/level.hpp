@@ -330,8 +330,10 @@ private:
             --num_new_buckets;
         }
 
-        // If first bucket underflows, join it onto its successor
-        if (2 * ssize(split_begin->buf) < minBucketSize()) {
+        // If first bucket underflows, join it onto its successor.
+        // Guard against reducing num_new_buckets to 0: that would make
+        // fixOverflowingBuckets retry splitAt on the same index forever.
+        if (num_new_buckets > 0 && 2 * ssize(split_begin->buf) < minBucketSize()) {
             S3Q_TRACE << "event=split:repair lvl=" << this->idx() << " idx=0"
                       << "\n";
             assert(std::next(split_begin) < buckets_.end());

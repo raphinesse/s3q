@@ -1,0 +1,288 @@
+Start testing: May 08 09:15 UTC
+----------------------------------------------------------
+1/19 Testing: s3q_pq_test
+1/19 Test: s3q_pq_test
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/s3q_pq_test"
+Directory: /home/runner/work/s3q/s3q/build_debug/tests
+"s3q_pq_test" start time: May 08 09:15 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"s3q_pq_test" end time: May 08 09:15 UTC
+"s3q_pq_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/19 Testing: s3q_batched_pq_test
+2/19 Test: s3q_batched_pq_test
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/s3q_batched_pq_test"
+Directory: /home/runner/work/s3q/s3q/build_debug/tests
+"s3q_batched_pq_test" start time: May 08 09:15 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"s3q_batched_pq_test" end time: May 08 09:15 UTC
+"s3q_batched_pq_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/19 Testing: s3q_classifier_test
+3/19 Test: s3q_classifier_test
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/s3q_classifier_test"
+Directory: /home/runner/work/s3q/s3q/build_debug/tests
+"s3q_classifier_test" start time: May 08 09:15 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"s3q_classifier_test" end time: May 08 09:15 UTC
+"s3q_classifier_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/19 Testing: s3q_monotone_pq_test
+4/19 Test: s3q_monotone_pq_test
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/s3q_monotone_pq_test"
+Directory: /home/runner/work/s3q/s3q/build_debug/tests
+"s3q_monotone_pq_test" start time: May 08 09:15 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.13 sec
+----------------------------------------------------------
+Test Passed.
+"s3q_monotone_pq_test" end time: May 08 09:15 UTC
+"s3q_monotone_pq_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/19 Testing: bm_test_S3Q_6_15__Wiggle_0_RandomDriver_
+5/19 Test: bm_test_S3Q_6_15__Wiggle_0_RandomDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_S3Q_6_15__Wiggle_0_RandomDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_S3Q_6_15__Wiggle_0_RandomDriver_" start time: May 08 09:15 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   1.89 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_S3Q_6_15__Wiggle_0_RandomDriver_" end time: May 08 09:16 UTC
+"bm_test_S3Q_6_15__Wiggle_0_RandomDriver_" time elapsed: 00:00:01
+----------------------------------------------------------
+
+6/19 Testing: bm_test_S3Q_6_15__Wiggle_1_RandomDriver_
+6/19 Test: bm_test_S3Q_6_15__Wiggle_1_RandomDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_S3Q_6_15__Wiggle_1_RandomDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_S3Q_6_15__Wiggle_1_RandomDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   3.51 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_S3Q_6_15__Wiggle_1_RandomDriver_" end time: May 08 09:16 UTC
+"bm_test_S3Q_6_15__Wiggle_1_RandomDriver_" time elapsed: 00:00:03
+----------------------------------------------------------
+
+7/19 Testing: bm_test_S3Q_6_15__Wiggle_1_MonotoneDriver_
+7/19 Test: bm_test_S3Q_6_15__Wiggle_1_MonotoneDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_S3Q_6_15__Wiggle_1_MonotoneDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_S3Q_6_15__Wiggle_1_MonotoneDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   6.17 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_S3Q_6_15__Wiggle_1_MonotoneDriver_" end time: May 08 09:16 UTC
+"bm_test_S3Q_6_15__Wiggle_1_MonotoneDriver_" time elapsed: 00:00:06
+----------------------------------------------------------
+
+8/19 Testing: bm_test_S3QBH_Wiggle_0_RandomDriver_
+8/19 Test: bm_test_S3QBH_Wiggle_0_RandomDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_S3QBH_Wiggle_0_RandomDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_S3QBH_Wiggle_0_RandomDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.59 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_S3QBH_Wiggle_0_RandomDriver_" end time: May 08 09:16 UTC
+"bm_test_S3QBH_Wiggle_0_RandomDriver_" time elapsed: 00:00:00
+----------------------------------------------------------
+
+9/19 Testing: bm_test_S3QBH_Wiggle_1_RandomDriver_
+9/19 Test: bm_test_S3QBH_Wiggle_1_RandomDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_S3QBH_Wiggle_1_RandomDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_S3QBH_Wiggle_1_RandomDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   1.96 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_S3QBH_Wiggle_1_RandomDriver_" end time: May 08 09:16 UTC
+"bm_test_S3QBH_Wiggle_1_RandomDriver_" time elapsed: 00:00:01
+----------------------------------------------------------
+
+10/19 Testing: bm_test_S3QBH_Wiggle_1_MonotoneDriver_
+10/19 Test: bm_test_S3QBH_Wiggle_1_MonotoneDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_S3QBH_Wiggle_1_MonotoneDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_S3QBH_Wiggle_1_MonotoneDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   2.50 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_S3QBH_Wiggle_1_MonotoneDriver_" end time: May 08 09:16 UTC
+"bm_test_S3QBH_Wiggle_1_MonotoneDriver_" time elapsed: 00:00:02
+----------------------------------------------------------
+
+11/19 Testing: bm_test_StdQueue_Wiggle_0_RandomDriver_
+11/19 Test: bm_test_StdQueue_Wiggle_0_RandomDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_StdQueue_Wiggle_0_RandomDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_StdQueue_Wiggle_0_RandomDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.96 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_StdQueue_Wiggle_0_RandomDriver_" end time: May 08 09:16 UTC
+"bm_test_StdQueue_Wiggle_0_RandomDriver_" time elapsed: 00:00:00
+----------------------------------------------------------
+
+12/19 Testing: bm_test_StdQueue_Wiggle_1_RandomDriver_
+12/19 Test: bm_test_StdQueue_Wiggle_1_RandomDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_StdQueue_Wiggle_1_RandomDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_StdQueue_Wiggle_1_RandomDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   3.18 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_StdQueue_Wiggle_1_RandomDriver_" end time: May 08 09:16 UTC
+"bm_test_StdQueue_Wiggle_1_RandomDriver_" time elapsed: 00:00:03
+----------------------------------------------------------
+
+13/19 Testing: bm_test_StdQueue_Wiggle_1_MonotoneDriver_
+13/19 Test: bm_test_StdQueue_Wiggle_1_MonotoneDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_StdQueue_Wiggle_1_MonotoneDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_StdQueue_Wiggle_1_MonotoneDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   3.57 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_StdQueue_Wiggle_1_MonotoneDriver_" end time: May 08 09:16 UTC
+"bm_test_StdQueue_Wiggle_1_MonotoneDriver_" time elapsed: 00:00:03
+----------------------------------------------------------
+
+14/19 Testing: bm_test_SequenceHeap_Wiggle_0_RandomDriver_
+14/19 Test: bm_test_SequenceHeap_Wiggle_0_RandomDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_SequenceHeap_Wiggle_0_RandomDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_SequenceHeap_Wiggle_0_RandomDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.30 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_SequenceHeap_Wiggle_0_RandomDriver_" end time: May 08 09:16 UTC
+"bm_test_SequenceHeap_Wiggle_0_RandomDriver_" time elapsed: 00:00:00
+----------------------------------------------------------
+
+15/19 Testing: bm_test_SequenceHeap_Wiggle_1_RandomDriver_
+15/19 Test: bm_test_SequenceHeap_Wiggle_1_RandomDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_SequenceHeap_Wiggle_1_RandomDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_SequenceHeap_Wiggle_1_RandomDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.62 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_SequenceHeap_Wiggle_1_RandomDriver_" end time: May 08 09:16 UTC
+"bm_test_SequenceHeap_Wiggle_1_RandomDriver_" time elapsed: 00:00:00
+----------------------------------------------------------
+
+16/19 Testing: bm_test_SequenceHeap_Wiggle_1_MonotoneDriver_
+16/19 Test: bm_test_SequenceHeap_Wiggle_1_MonotoneDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_SequenceHeap_Wiggle_1_MonotoneDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_SequenceHeap_Wiggle_1_MonotoneDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   1.72 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_SequenceHeap_Wiggle_1_MonotoneDriver_" end time: May 08 09:16 UTC
+"bm_test_SequenceHeap_Wiggle_1_MonotoneDriver_" time elapsed: 00:00:01
+----------------------------------------------------------
+
+17/19 Testing: bm_test_DAryHeap_4__Wiggle_0_RandomDriver_
+17/19 Test: bm_test_DAryHeap_4__Wiggle_0_RandomDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_DAryHeap_4__Wiggle_0_RandomDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_DAryHeap_4__Wiggle_0_RandomDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.73 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_DAryHeap_4__Wiggle_0_RandomDriver_" end time: May 08 09:16 UTC
+"bm_test_DAryHeap_4__Wiggle_0_RandomDriver_" time elapsed: 00:00:00
+----------------------------------------------------------
+
+18/19 Testing: bm_test_DAryHeap_4__Wiggle_1_RandomDriver_
+18/19 Test: bm_test_DAryHeap_4__Wiggle_1_RandomDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_DAryHeap_4__Wiggle_1_RandomDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_DAryHeap_4__Wiggle_1_RandomDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   2.19 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_DAryHeap_4__Wiggle_1_RandomDriver_" end time: May 08 09:16 UTC
+"bm_test_DAryHeap_4__Wiggle_1_RandomDriver_" time elapsed: 00:00:02
+----------------------------------------------------------
+
+19/19 Testing: bm_test_DAryHeap_4__Wiggle_1_MonotoneDriver_
+19/19 Test: bm_test_DAryHeap_4__Wiggle_1_MonotoneDriver_
+Command: "/home/runner/work/s3q/s3q/build_debug/bin/bm_test_DAryHeap_4__Wiggle_1_MonotoneDriver_"
+Directory: /home/runner/work/s3q/s3q/build_debug/benchmarks
+"bm_test_DAryHeap_4__Wiggle_1_MonotoneDriver_" start time: May 08 09:16 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   2.96 sec
+----------------------------------------------------------
+Test Passed.
+"bm_test_DAryHeap_4__Wiggle_1_MonotoneDriver_" end time: May 08 09:16 UTC
+"bm_test_DAryHeap_4__Wiggle_1_MonotoneDriver_" time elapsed: 00:00:02
+----------------------------------------------------------
+
+End testing: May 08 09:16 UTC

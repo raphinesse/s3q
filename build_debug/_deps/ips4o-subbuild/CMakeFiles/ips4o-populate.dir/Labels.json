@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/ips4o-subbuild/CMakeFiles/ips4o-populate"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/ips4o-subbuild/CMakeFiles/ips4o-populate.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/ips4o-subbuild/CMakeFiles/ips4o-populate-complete.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/ips4o-subbuild/ips4o-populate-prefix/src/ips4o-populate-stamp/ips4o-populate-build.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/ips4o-subbuild/ips4o-populate-prefix/src/ips4o-populate-stamp/ips4o-populate-configure.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/ips4o-subbuild/ips4o-populate-prefix/src/ips4o-populate-stamp/ips4o-populate-download.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/ips4o-subbuild/ips4o-populate-prefix/src/ips4o-populate-stamp/ips4o-populate-install.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/ips4o-subbuild/ips4o-populate-prefix/src/ips4o-populate-stamp/ips4o-populate-mkdir.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/ips4o-subbuild/ips4o-populate-prefix/src/ips4o-populate-stamp/ips4o-populate-patch.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/ips4o-subbuild/ips4o-populate-prefix/src/ips4o-populate-stamp/ips4o-populate-test.rule"
+		},
+		{
+			"file" : "/home/runner/work/s3q/s3q/build_debug/_deps/ips4o-subbuild/ips4o-populate-prefix/src/ips4o-populate-stamp/ips4o-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"ips4o-populate"
+		],
+		"name" : "ips4o-populate"
+	}
+}
