@@ -16,7 +16,9 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <iostream>
 #include <iterator>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -56,7 +58,11 @@ public:
 
         classifier_.invalidate();
 
-        assert(ssize(result.buf) <= kMaxBucketSize_);
+        // A bucket that consists entirely of duplicate keys cannot be split
+        // (num_new_buckets reaches 0 after repair and splitAt returns early).
+        // Such a bucket may be slightly larger than kMaxBucketSize_; allow up
+        // to kSplitFactor times the limit as a conservative upper bound.
+        assert(ssize(result.buf) <= kMaxBucketSize_ * Cfg::kSplitFactor);
         traceState("delMin:after");
         return result;
     }
@@ -269,6 +275,45 @@ private:
         }
     }
 
+    // ---------------------------------------------------------------------------
+    // Temporary diagnostic helpers – print compact key-distribution summaries
+    // of buckets during a split so that the degenerate-merge bug is observable.
+    // Enabled by defining S3Q_SPLIT_DIAG before including this header.
+    // ---------------------------------------------------------------------------
+#ifdef S3Q_SPLIT_DIAG
+    template <class KeyRange>
+    static void printKeyDist(std::ostream &os, const KeyRange &keys,
+                             const char *label) {
+        // Collect key frequencies
+        std::unordered_map<typename std::decay<decltype(*keys.begin())>::type, int> freq;
+        for (auto k : keys) freq[k]++;
+        if (freq.empty()) {
+            os << label << " count=0 [empty]\n";
+            return;
+        }
+        auto [mode_key, mode_cnt] =
+            *std::max_element(freq.begin(), freq.end(),
+                              [](auto &a, auto &b) { return a.second < b.second; });
+        auto [min_k, max_k] = [&] {
+            auto it = freq.begin();
+            auto lo = it->first, hi = it->first;
+            for (++it; it != freq.end(); ++it) {
+                lo = std::min(lo, it->first);
+                hi = std::max(hi, it->first);
+            }
+            return std::pair{lo, hi};
+        }();
+        int total = 0;
+        for (auto &[k, c] : freq) total += c;
+        os << label << " count=" << total
+           << " keys=[min=" << min_k << " max=" << max_k
+           << " uniq=" << freq.size()
+           << " mode=" << mode_key << "×" << mode_cnt
+           << "(" << (100 * mode_cnt / total) << "%)"
+           << "]\n";
+    }
+#endif
+
     BucketIdx splitAt(BucketIdx idx,
                       BucketIdx split_degree = Cfg::kSplitFactor) {
         SizeChecker sc{*this};
@@ -318,6 +363,48 @@ private:
             split_begin[c].buf.push_back(*it.base());
         });
 
+#ifdef S3Q_SPLIT_DIAG
+        // --- diagnostic: show the bucket being split and the split result ---
+        {
+            auto &os = std::cerr;
+            os << "\n=== splitAt lvl=" << this->idx()
+               << " idx=" << idx
+               << " maxSize=" << kMaxBucketSize_
+               << " minBucket=" << minBucketSize()
+               << " ===\n";
+            // Show original bucket key distribution (reconstructed from classified items)
+            std::vector<typename Cfg::Key> all_keys;
+            for (int si = 0; si <= num_new_buckets; ++si)
+                for (auto &item : split_begin[si].buf)
+                    all_keys.push_back(Cfg::getKey(item));
+            printKeyDist(os, all_keys, "  original bucket:");
+            // Show splitters
+            os << "  splitters (" << num_new_buckets << "): [";
+            for (int si = 0; si < num_new_buckets; ++si) {
+                if (si > 0) os << ", ";
+                os << split_begin[si].sup;
+            }
+            os << "]\n";
+            // Show each sub-bucket after classification
+            os << "  sub-buckets after classification:\n";
+            for (int si = 0; si <= num_new_buckets; ++si) {
+                auto subkeys =
+                    ranges::transform_view(split_begin[si].buf, Cfg::getKey);
+                char label[64];
+                std::snprintf(label, sizeof(label),
+                              "    [%d] sup=", si);
+                std::string lstr = label;
+                if (si < num_new_buckets) {
+                    lstr += std::to_string(split_begin[si].sup);
+                } else {
+                    lstr += "(orig)";
+                }
+                lstr += ":";
+                printKeyDist(os, subkeys, lstr.c_str());
+            }
+        }
+#endif
+
         // From right to left, join underflowing buckets onto their predecessors
         for (auto it = split_begin + num_new_buckets; it > split_begin; --it) {
             if (2 * ssize(it->buf) >= minBucketSize()) continue;
@@ -330,8 +417,10 @@ private:
             --num_new_buckets;
         }
 
-        // If first bucket underflows, join it onto its successor
-        if (2 * ssize(split_begin->buf) < minBucketSize()) {
+        // If first bucket underflows, join it onto its successor.
+        // Guard against reducing num_new_buckets to 0: that would make
+        // fixOverflowingBuckets retry splitAt on the same index forever.
+        if (num_new_buckets > 0 && 2 * ssize(split_begin->buf) < minBucketSize()) {
             S3Q_TRACE << "event=split:repair lvl=" << this->idx() << " idx=0"
                       << "\n";
             assert(std::next(split_begin) < buckets_.end());
@@ -342,6 +431,36 @@ private:
         }
 
         assert(num_new_buckets >= 0);
+
+#ifdef S3Q_SPLIT_DIAG
+        // --- diagnostic: show sub-buckets after merging repair ---
+        {
+            auto &os = std::cerr;
+            os << "  sub-buckets after merge repair"
+               << " (num_new=" << num_new_buckets << "):\n";
+            for (int si = 0; si <= num_new_buckets; ++si) {
+                auto subkeys =
+                    ranges::transform_view(split_begin[si].buf, Cfg::getKey);
+                char label[64];
+                std::snprintf(label, sizeof(label), "    [%d]:", si);
+                printKeyDist(os, subkeys, label);
+            }
+            if (num_new_buckets == 0) {
+                os << "  *** DEGENERATE SPLIT: all items share one key range.\n"
+                   << "      WITHOUT FIX: fixOverflowingBuckets retries splitAt\n"
+                   << "      on this same bucket -> infinite recursion / crash.\n"
+                   << "      WITH FIX: returning idx+1 to skip this bucket.\n";
+            }
+            os << "=== end splitAt ===\n\n";
+        }
+#endif
+
+        // When every new sub-bucket has been merged away (num_new_buckets == 0)
+        // the bucket consists entirely of duplicate keys that the sampler cannot
+        // split further.  Calling fixOverflowingBuckets here would schedule a
+        // retry on the exact same bucket, causing infinite mutual recursion.
+        // Instead we skip the bucket by returning idx+1.
+        if (num_new_buckets == 0) return idx + 1;
 
         return fixOverflowingBuckets(idx, idx + num_new_buckets + 1);
     }
