@@ -16,7 +16,9 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <iostream>
 #include <iterator>
+#include <map>
 #include <utility>
 #include <vector>
 
@@ -269,6 +271,38 @@ private:
         }
     }
 
+    // ---------------------------------------------------------------------------
+    // Temporary diagnostic helpers – print compact key-distribution summaries
+    // of buckets during a split so that the degenerate-merge bug is observable.
+    // Enabled by defining S3Q_SPLIT_DIAG before including this header.
+    // ---------------------------------------------------------------------------
+#ifdef S3Q_SPLIT_DIAG
+    template <class KeyRange>
+    static void printKeyDist(std::ostream &os, const KeyRange &keys,
+                             const char *label) {
+        // Collect key frequencies
+        std::map<typename std::decay<decltype(*keys.begin())>::type, int> freq;
+        for (auto k : keys) freq[k]++;
+        if (freq.empty()) {
+            os << label << " count=0 [empty]\n";
+            return;
+        }
+        auto [mode_key, mode_cnt] =
+            *std::max_element(freq.begin(), freq.end(),
+                              [](auto &a, auto &b) { return a.second < b.second; });
+        auto min_k = freq.begin()->first;
+        auto max_k = freq.rbegin()->first;
+        int total = 0;
+        for (auto &[k, c] : freq) total += c;
+        os << label << " count=" << total
+           << " keys=[min=" << min_k << " max=" << max_k
+           << " uniq=" << freq.size()
+           << " mode=" << mode_key << "×" << mode_cnt
+           << "(" << (100 * mode_cnt / total) << "%)"
+           << "]\n";
+    }
+#endif
+
     BucketIdx splitAt(BucketIdx idx,
                       BucketIdx split_degree = Cfg::kSplitFactor) {
         SizeChecker sc{*this};
@@ -318,12 +352,50 @@ private:
             split_begin[c].buf.push_back(*it.base());
         });
 
-        // From right to left, join underflowing buckets onto their predecessors.
-        // Stop before the first new bucket to ensure we always keep at least one new
-        // bucket. Keeping at least one new bucket prevents infinite recursion: if all
-        // new buckets were removed (num_new_buckets == 0), fixOverflowingBuckets would
-        // call splitAt on the same overflowing bucket again.
-        for (auto it = split_begin + num_new_buckets; it > split_begin + 1; --it) {
+#ifdef S3Q_SPLIT_DIAG
+        // --- diagnostic: show the bucket being split and the split result ---
+        {
+            auto &os = std::cerr;
+            os << "\n=== splitAt lvl=" << this->idx()
+               << " idx=" << idx
+               << " maxSize=" << kMaxBucketSize_
+               << " minBucket=" << minBucketSize()
+               << " ===\n";
+            // Show original bucket key distribution (reconstructed from classified items)
+            std::vector<typename Cfg::Key> all_keys;
+            for (int si = 0; si <= num_new_buckets; ++si)
+                for (auto &item : split_begin[si].buf)
+                    all_keys.push_back(Cfg::getKey(item));
+            printKeyDist(os, all_keys, "  original bucket:");
+            // Show splitters
+            os << "  splitters (" << num_new_buckets << "): [";
+            for (int si = 0; si < num_new_buckets; ++si) {
+                if (si > 0) os << ", ";
+                os << split_begin[si].sup;
+            }
+            os << "]\n";
+            // Show each sub-bucket after classification
+            os << "  sub-buckets after classification:\n";
+            for (int si = 0; si <= num_new_buckets; ++si) {
+                auto subkeys =
+                    ranges::transform_view(split_begin[si].buf, Cfg::getKey);
+                char label[64];
+                std::snprintf(label, sizeof(label),
+                              "    [%d] sup=", si);
+                std::string lstr = label;
+                if (si < num_new_buckets) {
+                    lstr += std::to_string(split_begin[si].sup);
+                } else {
+                    lstr += "(orig)";
+                }
+                lstr += ":";
+                printKeyDist(os, subkeys, lstr.c_str());
+            }
+        }
+#endif
+
+        // From right to left, join underflowing buckets onto their predecessors
+        for (auto it = split_begin + num_new_buckets; it > split_begin; --it) {
             if (2 * ssize(it->buf) >= minBucketSize()) continue;
             S3Q_TRACE << "event=split:repair lvl=" << this->idx()
                       << " idx=" << std::distance(split_begin, it) << "\n";
@@ -346,6 +418,28 @@ private:
         }
 
         assert(num_new_buckets >= 0);
+
+#ifdef S3Q_SPLIT_DIAG
+        // --- diagnostic: show sub-buckets after merging repair ---
+        {
+            auto &os = std::cerr;
+            os << "  sub-buckets after merge repair"
+               << " (num_new=" << num_new_buckets << "):\n";
+            for (int si = 0; si <= num_new_buckets; ++si) {
+                auto subkeys =
+                    ranges::transform_view(split_begin[si].buf, Cfg::getKey);
+                char label[64];
+                std::snprintf(label, sizeof(label), "    [%d]:", si);
+                printKeyDist(os, subkeys, label);
+            }
+            if (num_new_buckets == 0) {
+                os << "  *** BUG TRIGGER: num_new_buckets==0 after repair.\n"
+                   << "      fixOverflowingBuckets will now call splitAt on\n"
+                   << "      the SAME overflowing bucket -> infinite recursion.\n";
+            }
+            os << "=== end splitAt ===\n\n";
+        }
+#endif
 
         return fixOverflowingBuckets(idx, idx + num_new_buckets + 1);
     }

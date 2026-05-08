@@ -6,9 +6,13 @@
 #include <random>
 
 // Reproduces the stack overflow with monotone i32 items reported in the issue.
-// Small config so the test runs fast while still triggering the degenerate
-// split scenario (all items in a bucket share the same key after the initial
-// random push phase with a narrow key range).
+// Uses a small bucket size (kBufBaseSize=64) and a narrow key range so that
+// many buckets fill with items sharing the same key value.  N=1<<17 reliably
+// triggers the degenerate split: the sampler can only find a single unique
+// splitter for such a bucket, so after classification all items end up in one
+// sub-bucket, the empty sibling is merged away, num_new_buckets reaches 0,
+// and without the fix fixOverflowingBuckets calls splitAt on the same bucket
+// forever (stack overflow).
 struct TestCfg : s3q::DefaultCfg {
     using Item = int32_t;
     static constexpr std::ptrdiff_t kBufBaseSize = 64;
@@ -16,7 +20,7 @@ struct TestCfg : s3q::DefaultCfg {
 };
 
 int main() {
-    constexpr int N = 1 << 14;
+    constexpr int N = 1 << 17;
 
     s3q::PriorityQueue<TestCfg> pq;
 
