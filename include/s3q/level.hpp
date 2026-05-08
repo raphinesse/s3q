@@ -58,7 +58,11 @@ public:
 
         classifier_.invalidate();
 
-        assert(ssize(result.buf) <= kMaxBucketSize_);
+        // A bucket that consists entirely of duplicate keys cannot be split
+        // (num_new_buckets reaches 0 after repair and splitAt returns early).
+        // Such a bucket may be slightly larger than kMaxBucketSize_; allow up
+        // to kSplitFactor times the limit as a conservative upper bound.
+        assert(ssize(result.buf) <= kMaxBucketSize_ * Cfg::kSplitFactor);
         traceState("delMin:after");
         return result;
     }
@@ -406,8 +410,10 @@ private:
             --num_new_buckets;
         }
 
-        // If first bucket underflows, join it onto its successor
-        if (2 * ssize(split_begin->buf) < minBucketSize()) {
+        // If first bucket underflows, join it onto its successor.
+        // Guard against reducing num_new_buckets to 0: that would make
+        // fixOverflowingBuckets retry splitAt on the same index forever.
+        if (num_new_buckets > 0 && 2 * ssize(split_begin->buf) < minBucketSize()) {
             S3Q_TRACE << "event=split:repair lvl=" << this->idx() << " idx=0"
                       << "\n";
             assert(std::next(split_begin) < buckets_.end());
@@ -433,13 +439,21 @@ private:
                 printKeyDist(os, subkeys, label);
             }
             if (num_new_buckets == 0) {
-                os << "  *** BUG TRIGGER: num_new_buckets==0 after repair.\n"
-                   << "      fixOverflowingBuckets will now call splitAt on\n"
-                   << "      the SAME overflowing bucket -> infinite recursion.\n";
+                os << "  *** DEGENERATE SPLIT: all items share one key range.\n"
+                   << "      WITHOUT FIX: fixOverflowingBuckets retries splitAt\n"
+                   << "      on this same bucket -> infinite recursion / crash.\n"
+                   << "      WITH FIX: returning idx+1 to skip this bucket.\n";
             }
             os << "=== end splitAt ===\n\n";
         }
 #endif
+
+        // When every new sub-bucket has been merged away (num_new_buckets == 0)
+        // the bucket consists entirely of duplicate keys that the sampler cannot
+        // split further.  Calling fixOverflowingBuckets here would schedule a
+        // retry on the exact same bucket, causing infinite mutual recursion.
+        // Instead we skip the bucket by returning idx+1.
+        if (num_new_buckets == 0) return idx + 1;
 
         return fixOverflowingBuckets(idx, idx + num_new_buckets + 1);
     }
