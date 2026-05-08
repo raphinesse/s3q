@@ -2,7 +2,7 @@
 
 #include "bucket.hpp"
 #include "classifier.hpp"
-#include "sampling.hpp"
+#include "splitter.hpp"
 #include "util.hpp"
 
 #include <range/v3/action/insert.hpp>
@@ -31,11 +31,11 @@ public:
 
     // Ctor for first level
     explicit Level(SplitterSampler &sampler)
-        : getSplitters(sampler), kMaxBucketSize_(Cfg::kBufBaseSize) {}
+        : splitter_(sampler), kMaxBucketSize_(Cfg::kBufBaseSize) {}
 
     // Ctor for any other level
     explicit Level(SplitterSampler &sampler, const Level &pred)
-        : getSplitters(sampler),
+        : splitter_(sampler),
           kMaxBucketSize_(pred.kMaxBucketSize_ * Cfg::kGrowthRate) {}
 
     bool overflow() const { return maxBufSize() > kMaxBucketSize_; }
@@ -301,7 +301,7 @@ private:
 
         // determine splitters and insert them together with empty buffers
         // the old splitter becomes the supremum of the last new bucket
-        auto splitters = getSplitters(keys_view, split_degree);
+        auto splitters = splitter_(keys_view, split_degree);
         auto num_new_buckets = ssize(splitters);
         assert(num_new_buckets < split_degree);
         ranges::insert(buckets_, buckets_.begin() + idx, splitters);
@@ -312,9 +312,8 @@ private:
                   << "\n";
 
         // PERF: only use local classifier if split_degree ≪ degree()
-        Classifier classifier{splitters};
         const auto split_begin = buckets_.begin() + idx;
-        classifier.classify(keys_view, [split_begin](auto c, auto it) {
+        splitter_.classify(keys_view, [split_begin](auto c, auto it) {
             split_begin[c].buf.push_back(*it.base());
         });
 
@@ -330,8 +329,10 @@ private:
             --num_new_buckets;
         }
 
-        // If first bucket underflows, join it onto its successor
-        if (2 * ssize(split_begin->buf) < minBucketSize()) {
+        // If first bucket underflows, join it onto its successor.
+        // Guard against reducing num_new_buckets to 0: that would make
+        // fixOverflowingBuckets retry splitAt on the same index forever.
+        if (num_new_buckets > 0 && 2 * ssize(split_begin->buf) < minBucketSize()) {
             S3Q_TRACE << "event=split:repair lvl=" << this->idx() << " idx=0"
                       << "\n";
             assert(std::next(split_begin) < buckets_.end());
@@ -357,7 +358,7 @@ private:
 
     bool is_last_ = true;
 
-    SplitterSampler &getSplitters;
+    Splitter<Cfg> splitter_;
 
     const std::ptrdiff_t kMaxBucketSize_;
 
