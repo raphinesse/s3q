@@ -318,8 +318,12 @@ private:
             split_begin[c].buf.push_back(*it.base());
         });
 
-        // From right to left, join underflowing buckets onto their predecessors
-        for (auto it = split_begin + num_new_buckets; it > split_begin; --it) {
+        // From right to left, join underflowing buckets onto their predecessors.
+        // Stop before the first new bucket to ensure we always keep at least one new
+        // bucket. Keeping at least one new bucket prevents infinite recursion: if all
+        // new buckets were removed (num_new_buckets == 0), fixOverflowingBuckets would
+        // call splitAt on the same overflowing bucket again.
+        for (auto it = split_begin + num_new_buckets; it > split_begin + 1; --it) {
             if (2 * ssize(it->buf) >= minBucketSize()) continue;
             S3Q_TRACE << "event=split:repair lvl=" << this->idx()
                       << " idx=" << std::distance(split_begin, it) << "\n";
@@ -330,10 +334,8 @@ private:
             --num_new_buckets;
         }
 
-        // If first bucket underflows, join it onto its successor.
-        // Guard against reducing num_new_buckets to 0: that would make
-        // fixOverflowingBuckets retry splitAt on the same index forever.
-        if (num_new_buckets > 0 && 2 * ssize(split_begin->buf) < minBucketSize()) {
+        // If first bucket underflows, join it onto its successor
+        if (2 * ssize(split_begin->buf) < minBucketSize()) {
             S3Q_TRACE << "event=split:repair lvl=" << this->idx() << " idx=0"
                       << "\n";
             assert(std::next(split_begin) < buckets_.end());
