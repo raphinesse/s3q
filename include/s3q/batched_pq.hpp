@@ -93,7 +93,7 @@ private:
             assert(lvl->degree() > Cfg::kMaxDegree - Cfg::kSplitFactor);
 
             // Add new level and flush max-buf into it
-            levels_.emplace_back(sampler_, *lvl);
+            levels_.emplace_back(sampler_, splitter_, *lvl);
             lvl->flushMaxBufInto(levels_.back());
         }
     }
@@ -147,8 +147,13 @@ private:
 
     SplitterSampler sampler_;
 
+    // Owns IPS4o buffer storage and local data for in-place splitting.
+    // Must be declared before levels_ so it is constructed first; all Level
+    // objects hold a reference to splitter_.
+    BucketSplitter<Cfg> splitter_;
+
     // sorted from finest to coarsest (ascending order of elements)
-    Levels levels_{Level(sampler_)};
+    Levels levels_{Level(sampler_, splitter_)};
 };
 
 } // namespace s3q::detail
