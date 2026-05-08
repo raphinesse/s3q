@@ -1,1 +1,0 @@
-/usr/bin/c++ -g -Wl,--dependency-file=CMakeFiles/benchmark_S3Q_6_15__Wiggle_1_MonotoneDriver_.dir/link.d CMakeFiles/benchmark_S3Q_6_15__Wiggle_1_MonotoneDriver_.dir/benchmark_S3Q_6_15__Wiggle_1_MonotoneDriver_.cpp.o -o ../bin/benchmark_S3Q_6_15__Wiggle_1_MonotoneDriver_  ../extern/libtlx-mini.a

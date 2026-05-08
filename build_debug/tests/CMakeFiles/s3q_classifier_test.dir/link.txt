@@ -1,1 +1,0 @@
-/usr/bin/c++ -g -Wl,--dependency-file=CMakeFiles/s3q_classifier_test.dir/link.d CMakeFiles/s3q_classifier_test.dir/classifier_test.cpp.o -o ../bin/s3q_classifier_test  ../extern/libtlx-mini.a

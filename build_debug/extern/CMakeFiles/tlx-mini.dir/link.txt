@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtlx-mini.a "CMakeFiles/tlx-mini.dir/__/_deps/tlx-src/tlx/die/core.cpp.o" "CMakeFiles/tlx-mini.dir/__/_deps/tlx-src/tlx/logger/core.cpp.o" "CMakeFiles/tlx-mini.dir/__/_deps/tlx-src/tlx/timestamp.cpp.o"
-/usr/bin/ranlib libtlx-mini.a

@@ -1,1 +1,0 @@
-/usr/bin/c++ -g -Wl,--dependency-file=CMakeFiles/s3q_monotone_pq_test.dir/link.d CMakeFiles/s3q_monotone_pq_test.dir/monotone_pq_test.cpp.o -o ../bin/s3q_monotone_pq_test  ../extern/libtlx-mini.a
