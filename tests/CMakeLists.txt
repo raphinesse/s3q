@@ -4,6 +4,7 @@ foreach(SRC_NAME
     pq_test
     batched_pq_test
     classifier_test
+    config_key_test
 )
     set(TEST_NAME s3q_${SRC_NAME})
     add_executable(${TEST_NAME} EXCLUDE_FROM_ALL ${SRC_NAME}.cpp)

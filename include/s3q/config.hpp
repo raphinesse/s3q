@@ -45,7 +45,7 @@ struct GetKey {
 
 // Use user-provided GetKey functor
 template <class Cfg>
-struct GetKey<Cfg, std::void_t<decltype(Cfg::GetKey)>> : Cfg::GetKey {};
+struct GetKey<Cfg, std::void_t<typename Cfg::GetKey>> : Cfg::GetKey {};
 
 /**
  * Extends user-config Base with derived values.
