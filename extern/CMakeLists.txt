@@ -28,7 +28,7 @@ target_include_directories(ips4o
 # Unfortunately that means we cannot do a shallow clone.
 fetch(range-v3
     GIT_REPOSITORY  https://github.com/ericniebler/range-v3.git
-    GIT_TAG         6f3d0e2af9ae)
+    GIT_TAG         ca1388fb9da8)
 add_library(range-v3 INTERFACE)
 target_include_directories(range-v3
     SYSTEM INTERFACE ${range-v3_SOURCE_DIR}/include)
