@@ -8,12 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Place all built binaries under <BUILD_DIR>/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# Make clang more compliant to C++17
-# see https://stackoverflow.com/a/48447541/380229
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    add_compile_options(-frelaxed-template-template-args)
-endif()
-
 # Add 3rd party libraries
 add_subdirectory(extern)
 
